@@ -23,19 +23,4 @@
     }
 </div>
 
-@code {
-    protected override void OnInitialized()
-        => State.OnStateChanged += OnStateChangedHandler;
 
-    private void OnStateChangedHandler()
-        => InvokeAsync(StateHasChanged);
-
-    private void OnChapterChanged(ChangeEventArgs e)
-    {
-        if (int.TryParse(e.Value?.ToString(), out var ch))
-            State.SelectChapter(ch);
-    }
-
-    public void Dispose()
-        => State.OnStateChanged -= OnStateChangedHandler;
-}

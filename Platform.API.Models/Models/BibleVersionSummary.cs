@@ -7,7 +7,7 @@ namespace Platform.API.Models;
 /// </summary>
 public sealed record BibleVersionSummary
 {
-    /// <summary>Unique numeric identifier for the Bible version.</summary>
+    /// <summary>Bible Version ID</summary>
     [JsonPropertyName("id")]
     public int Id { get; init; }
 
