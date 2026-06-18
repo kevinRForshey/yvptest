@@ -1,0 +1,28 @@
+﻿<h3>BibleReader</h3>
+
+@* ── Picker toolbar ──────────────────────────────────────────────── *@
+<div class="row g-3 mb-4">
+    <div class="col-12 col-md-3">
+        <VersionPicker />
+    </div>
+    <div class="col-12 col-md-3">
+        <BookPicker />
+    </div>
+    <div class="col-12 col-md-2">
+        <ChapterPicker />
+    </div>
+    <div class="col-12 col-md-3">
+        <VersePicker />
+    </div>
+    <div class="col-12 col-md-1 d-flex align-items-end">
+        <button class="btn btn-primary w-100"
+                @onclick="ReadPassageAsync"
+                disabled="@(!CanRead)">
+            Read
+        </button>
+    </div>
+</div>
+
+ @* ── Passage area ────────────────────────────────────────────────── *@
+    <PassageDisplay Copyright="@_copyright" @ref="_passageDisplay" />
+
