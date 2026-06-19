@@ -8,6 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Platform.API.Models\Platform.API.Models.csproj" />
     <ProjectReference Include="..\Platform.API\Platform.API.csproj" />
     <ProjectReference Include="..\Platform.SDK.Components\Platform.SDK.Components.csproj" />
   </ItemGroup>
