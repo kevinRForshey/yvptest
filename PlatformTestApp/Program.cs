@@ -11,7 +11,7 @@ using System.Text;
 using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder(args);
-
+#region Add Services
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
@@ -34,7 +34,7 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IBibleReaderStateService, BibleReaderStateService>();
 builder.Services.AddScoped<IVersionService, VersionService>();
 builder.Services.AddScoped<IBookService, BookService>();
-builder.Services.AddScoped<PassageService>();
+builder.Services.AddScoped<IPassageService, PassageService>();
 
 // Session support for OAuth PKCE code verifier / state storage
 builder.Services.AddDistributedMemoryCache();
@@ -44,9 +44,10 @@ builder.Services.AddSession(o =>
     o.Cookie.IsEssential = true;
     o.IdleTimeout = TimeSpan.FromMinutes(15);
 });
-
+#endregion
 var app = builder.Build();
 
+#region HTTP Pipeline
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
@@ -58,9 +59,10 @@ app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages:
 app.UseHttpsRedirection();
 app.UseSession();
 
+#endregion
 // YouVersion redirects back to http://localhost:52413?code=...&state=...
 // Park the code in the session then hand off to the callback endpoint which has a real HttpContext.
-app.Use(async (ctx, next) =>
+app.Use(async (HttpContext ctx, RequestDelegate next) =>
 {
     if (ctx.Request.Path == "/" && ctx.Request.Query.ContainsKey("code"))
     {

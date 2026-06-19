@@ -3,7 +3,7 @@ using Platform.API.Models;
 
 namespace Platform.SDK.Services
 {
-    public sealed class PassageService(IPassageClient client)
+    public sealed class PassageService(IPassageClient client) : IPassageService
     {
         public Task<Passage> GetPassageAsync(
             int versionId,

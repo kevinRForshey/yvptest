@@ -19,7 +19,7 @@ namespace Platform.SDK.Components.BibleComponents
         private NavigationManager Nav { get; set; } = default!;
 
         [Inject]
-        private PassageService PassageService { get; set; } = default!;
+        private IPassageService PassageService { get; set; } = default!;
 
         // Populated when the OAuth callback redirects with ?oauth_error=...
         [SupplyParameterFromQuery(Name = "oauth_error")]
