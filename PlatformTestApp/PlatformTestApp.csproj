@@ -8,12 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Platform.API.Models\Platform.API.Models.csproj" />
-    <ProjectReference Include="..\Platform.API\Platform.API.csproj" />
-    <ProjectReference Include="..\Platform.SDK.Components\Platform.SDK.Components.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
+    <PackageReference Include="YouVersion.Platform.SDK.Components" Version="1.0.0" />
     <PackageReference Include="Microsoft.FluentUI.AspNetCore.Components" Version="4.14.2" />
     <PackageReference Include="Microsoft.FluentUI.AspNetCore.Components.Icons" Version="4.14.2" />
   </ItemGroup>
