@@ -5,6 +5,31 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <AddRazorSupportForMvc>true</AddRazorSupportForMvc>
+
+
+      <!-- NuGet package identity -->
+      <PackageId>YouVersion.Platform.API.Models</PackageId>
+      <Version>1.0.0</Version>
+      <Authors>Kevin Forshey</Authors>
+      <Company>MyndTek Ltd.</Company>
+      <Product>YouVersion Platform API Models</Product>
+      <Description>Domain model types (Versions, Books, Chapters, Verses, Passages, Highlights) for the YouVersion Platform REST API.</Description>
+      <PackageTags>youversion;bible;api;models;sdk</PackageTags>
+      <PackageProjectUrl>https://github.com/kevinRForshey/SimpleYouVersionPlatformDotNetSDK</PackageProjectUrl>
+      <RepositoryUrl>https://github.com/kevinRForshey/SimpleYouVersionPlatformDotNetSDK</RepositoryUrl>
+      <PackageLicenseExpression>MIT</PackageLicenseExpression>
+      <PackageReadmeFile>README.md</PackageReadmeFile>
+
+      <!-- Build quality -->
+      <GenerateDocumentationFile>true</GenerateDocumentationFile>
+      <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+      <NoWarn>$(NoWarn);CS1591</NoWarn>
+
+      <!-- Source link / deterministic builds -->
+      <PublishRepositoryUrl>true</PublishRepositoryUrl>
+      <EmbedUntrackedSources>true</EmbedUntrackedSources>
+      <IncludeSymbols>true</IncludeSymbols>
+      <SymbolPackageFormat>snupkg</SymbolPackageFormat>
   </PropertyGroup>
 
   <ItemGroup>
