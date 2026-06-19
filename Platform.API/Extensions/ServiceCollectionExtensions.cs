@@ -46,6 +46,7 @@ public static class ServiceCollectionExtensions
             .ValidateOnStart();
 
         services.AddTransient<AppKeyDelegatingHandler>();
+        services.AddTransient<OutboundRateLimitingHandler>();
 
         RegisterTypedClient<IBibleClient, BibleClient>(services);
         RegisterTypedClient<IPassageClient, PassageClient>(services);
@@ -82,6 +83,7 @@ public static class ServiceCollectionExtensions
             .ValidateOnStart();
 
         services.AddTransient<AppKeyDelegatingHandler>();
+        services.AddTransient<OutboundRateLimitingHandler>();
 
         RegisterTypedClient<IBibleClient, BibleClient>(services);
         RegisterTypedClient<IPassageClient, PassageClient>(services);
@@ -114,6 +116,10 @@ public static class ServiceCollectionExtensions
         ArgumentNullException.ThrowIfNull(services);
         ArgumentNullException.ThrowIfNull(configureOptions);
 
+        if (!HasApiClientRegistration(services))
+            throw new InvalidOperationException(
+                "AddYouVersionApiClients must be called before AddYouVersionOAuth so API options and HTTP pipelines are configured.");
+
         services.AddOptions<YouVersionOAuthOptions>()
             .Configure(configureOptions)
             .ValidateOnStart();
@@ -127,7 +133,10 @@ public static class ServiceCollectionExtensions
         // OAuth HTTP client — no app key or bearer required on auth endpoints.
         // BaseAddress is intentionally not set; PostTokenRequestAsync uses the absolute
         // TokenEndpoint URI from YouVersionOAuthOptions directly.
-        services.AddHttpClient<IYouVersionOAuthClient, YouVersionOAuthClient>();
+        services
+            .AddHttpClient<IYouVersionOAuthClient, YouVersionOAuthClient>()
+            .AddHttpMessageHandler<OutboundRateLimitingHandler>()
+            .AddStandardResilienceHandler();
 
         // Append OAuthBearerTokenHandler to IHighlightClient's existing pipeline
         // (AppKeyDelegatingHandler was already added by AddYouVersionApiClients).
@@ -156,6 +165,11 @@ public static class ServiceCollectionExtensions
                 httpClient.BaseAddress = options.BaseAddress;
                 httpClient.Timeout = options.Timeout;
             })
-            .AddHttpMessageHandler<AppKeyDelegatingHandler>();
+            .AddHttpMessageHandler<AppKeyDelegatingHandler>()
+            .AddHttpMessageHandler<OutboundRateLimitingHandler>()
+            .AddStandardResilienceHandler();
     }
+
+    private static bool HasApiClientRegistration(IServiceCollection services)
+        => services.Any(static d => d.ServiceType == typeof(IConfigureOptions<YouVersionApiOptions>));
 }

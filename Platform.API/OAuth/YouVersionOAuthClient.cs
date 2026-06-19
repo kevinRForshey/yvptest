@@ -37,6 +37,9 @@ internal sealed class YouVersionOAuthClient : IYouVersionOAuthClient
     /// <inheritdoc />
     public AuthorizationRequest BuildAuthorizationUrl(string? state = null)
     {
+        if (state is not null && string.IsNullOrWhiteSpace(state))
+            throw new ArgumentException("State cannot be empty or whitespace when provided.", nameof(state));
+
         var pkce = GeneratePkce();
         var resolvedState = state ?? Base64UrlEncode(RandomNumberGenerator.GetBytes(16));
         var nonce = Base64UrlEncode(RandomNumberGenerator.GetBytes(24));
@@ -72,6 +75,12 @@ internal sealed class YouVersionOAuthClient : IYouVersionOAuthClient
         string codeVerifier,
         CancellationToken cancellationToken = default)
     {
+        if (string.IsNullOrWhiteSpace(code))
+            throw new ArgumentException("Authorization code is required.", nameof(code));
+
+        if (string.IsNullOrWhiteSpace(codeVerifier))
+            throw new ArgumentException("PKCE code verifier is required.", nameof(codeVerifier));
+
         _logger.LogDebug("Exchanging authorization code for tokens.");
 
         var formData = new Dictionary<string, string>

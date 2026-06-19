@@ -21,6 +21,15 @@ internal sealed class BibleClient(HttpClient httpClient, ILogger<BibleClient> lo
         int? pageSize = null,
         CancellationToken cancellationToken = default)
     {
+        if (string.IsNullOrWhiteSpace(languageRange))
+            throw new ArgumentException("Language range is required.", nameof(languageRange));
+
+        if (pageToken is not null && string.IsNullOrWhiteSpace(pageToken))
+            throw new ArgumentException("Page token cannot be empty or whitespace.", nameof(pageToken));
+
+        if (pageSize is <= 0)
+            throw new ArgumentOutOfRangeException(nameof(pageSize), pageSize, "Page size must be greater than zero.");
+
         var url = BuildVersionsUrl(languageRange, pageToken, pageSize);
         logger.LogDebug("Fetching Bible versions for language range '{LanguageRange}' (pageToken={PageToken}).", languageRange, pageToken);
 
@@ -35,6 +44,9 @@ internal sealed class BibleClient(HttpClient httpClient, ILogger<BibleClient> lo
     /// <inheritdoc />
     public async Task<BibleVersion> GetVersionAsync(int versionId, CancellationToken cancellationToken = default)
     {
+        if (versionId <= 0)
+            throw new ArgumentOutOfRangeException(nameof(versionId), versionId, "Version id must be greater than zero.");
+
         logger.LogDebug("Fetching Bible version {VersionId}.", versionId);
 
         var result = await ApiRequestHelper.GetJsonAsync<BibleVersion>(httpClient, $"/v1/bibles/{versionId}", logger, cancellationToken)
@@ -51,6 +63,9 @@ internal sealed class BibleClient(HttpClient httpClient, ILogger<BibleClient> lo
     /// <inheritdoc />
     public async Task<IReadOnlyList<Book>> GetBooksAsync(int versionId, CancellationToken cancellationToken = default)
     {
+        if (versionId <= 0)
+            throw new ArgumentOutOfRangeException(nameof(versionId), versionId, "Version id must be greater than zero.");
+
         logger.LogDebug("Fetching books for Bible version {VersionId}.", versionId);
 
         var version = await GetVersionAsync(versionId, cancellationToken).ConfigureAwait(false);
@@ -62,7 +77,11 @@ internal sealed class BibleClient(HttpClient httpClient, ILogger<BibleClient> lo
 
     /// <inheritdoc />
     public Task<IReadOnlyList<Book>> GetBooksAsync(BibleVersion version)
-        => Task.FromResult<IReadOnlyList<Book>>(BuildBookList(version));
+    {
+        ArgumentNullException.ThrowIfNull(version);
+
+        return Task.FromResult<IReadOnlyList<Book>>(BuildBookList(version));
+    }
 
     // -------------------------------------------------------------------------
     // Private helpers

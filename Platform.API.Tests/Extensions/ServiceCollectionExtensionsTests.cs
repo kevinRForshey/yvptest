@@ -81,6 +81,18 @@ public sealed class ServiceCollectionExtensionsTests
     }
 
     [Fact]
+    public void AddYouVersionOAuth_ThrowsInvalidOperationException_WhenApiClientsNotRegisteredFirst()
+    {
+        var services = new ServiceCollection();
+        services.AddLogging();
+
+        var act = () => services.AddYouVersionOAuth(o => o.ClientId = "cid");
+
+        act.Should().Throw<InvalidOperationException>()
+            .WithMessage("*AddYouVersionApiClients*");
+    }
+
+    [Fact]
     public void AddYouVersionApiClients_ThrowsArgumentNullException_WhenServicesIsNull()
     {
         IServiceCollection services = null!;

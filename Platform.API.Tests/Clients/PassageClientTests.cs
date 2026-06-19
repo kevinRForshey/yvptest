@@ -91,6 +91,24 @@ public sealed class PassageClientTests
         handler.LastRequest!.RequestUri!.AbsolutePath.Should().Contain("JHN.3.16-17");
     }
 
+    [Fact]
+    public async Task GetPassageAsync_ThrowsArgumentOutOfRangeException_WhenVersionIdIsNotPositive()
+    {
+        var client = BuildClient(HttpStatusCode.OK, PassageJson);
+        var act = () => client.GetPassageAsync(0, "JHN.3.16");
+        await act.Should().ThrowAsync<ArgumentOutOfRangeException>();
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData(" ")]
+    public async Task GetPassageAsync_ThrowsArgumentException_WhenUsfmIsInvalid(string usfm)
+    {
+        var client = BuildClient(HttpStatusCode.OK, PassageJson);
+        var act = () => client.GetPassageAsync(3034, usfm);
+        await act.Should().ThrowAsync<ArgumentException>();
+    }
+
     // -------------------------------------------------------------------------
     // GetPassageAsync — error paths
     // -------------------------------------------------------------------------

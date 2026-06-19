@@ -33,4 +33,21 @@ public sealed class YouVersionApiOptions
     /// HTTP request timeout. Defaults to 30 seconds.
     /// </summary>
     public TimeSpan Timeout { get; set; } = TimeSpan.FromSeconds(30);
+
+    /// <summary>
+    /// Number of outbound API requests replenished per second for the SDK's per-client
+    /// token-bucket limiter.
+    /// </summary>
+    public int OutboundRequestsPerSecond { get; set; } = 10;
+
+    /// <summary>
+    /// Maximum burst size for outbound requests before queuing/rate-limit rejection.
+    /// Must be greater than or equal to <see cref="OutboundRequestsPerSecond"/>.
+    /// </summary>
+    public int OutboundBurstSize { get; set; } = 20;
+
+    /// <summary>
+    /// Maximum number of queued outbound requests waiting for rate-limit permits.
+    /// </summary>
+    public int OutboundQueueLimit { get; set; } = 100;
 }

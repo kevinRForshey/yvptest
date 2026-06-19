@@ -58,6 +58,16 @@ public sealed class HighlightClientTests
     }
 
     [Theory]
+    [InlineData("")]
+    [InlineData(" ")]
+    public async Task GetHighlightsAsync_ThrowsArgumentException_WhenPageTokenIsInvalid(string pageToken)
+    {
+        var client = BuildClient(HttpStatusCode.OK, PagedHighlightsJson);
+        var act = () => client.GetHighlightsAsync(pageToken);
+        await act.Should().ThrowAsync<ArgumentException>();
+    }
+
+    [Theory]
     [InlineData(HttpStatusCode.Unauthorized)]
     [InlineData(HttpStatusCode.Forbidden)]
     [InlineData(HttpStatusCode.InternalServerError)]
@@ -105,6 +115,33 @@ public sealed class HighlightClientTests
             .Where(e => e.StatusCode == HttpStatusCode.Unauthorized);
     }
 
+    [Fact]
+    public async Task CreateHighlightAsync_ThrowsArgumentOutOfRangeException_WhenVersionIdIsNotPositive()
+    {
+        var client = BuildClient(HttpStatusCode.Created, HighlightJson);
+        var act = () => client.CreateHighlightAsync(0, "JHN.3.16", HighlightColor.Yellow);
+        await act.Should().ThrowAsync<ArgumentOutOfRangeException>();
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData(" ")]
+    public async Task CreateHighlightAsync_ThrowsArgumentException_WhenUsfmIsInvalid(string usfm)
+    {
+        var client = BuildClient(HttpStatusCode.Created, HighlightJson);
+        var act = () => client.CreateHighlightAsync(3034, usfm, HighlightColor.Yellow);
+        await act.Should().ThrowAsync<ArgumentException>();
+    }
+
+    [Fact]
+    public async Task CreateHighlightAsync_ThrowsArgumentOutOfRangeException_WhenColorIsInvalid()
+    {
+        var client = BuildClient(HttpStatusCode.Created, HighlightJson);
+        var invalidColor = (HighlightColor)999;
+        var act = () => client.CreateHighlightAsync(3034, "JHN.3.16", invalidColor);
+        await act.Should().ThrowAsync<ArgumentOutOfRangeException>();
+    }
+
     // -------------------------------------------------------------------------
     // DeleteHighlightAsync
     // -------------------------------------------------------------------------
@@ -136,6 +173,16 @@ public sealed class HighlightClientTests
         var act = () => client.DeleteHighlightAsync("hl-missing");
         await act.Should().ThrowAsync<YouVersionApiException>()
             .Where(e => e.StatusCode == HttpStatusCode.NotFound);
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData(" ")]
+    public async Task DeleteHighlightAsync_ThrowsArgumentException_WhenHighlightIdIsInvalid(string highlightId)
+    {
+        var client = BuildClient(HttpStatusCode.NoContent, string.Empty);
+        var act = () => client.DeleteHighlightAsync(highlightId);
+        await act.Should().ThrowAsync<ArgumentException>();
     }
 
     // -------------------------------------------------------------------------

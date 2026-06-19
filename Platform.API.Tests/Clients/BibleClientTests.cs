@@ -50,6 +50,24 @@ public sealed class BibleClientTests
         result.Data.Should().BeEmpty();
     }
 
+    [Theory]
+    [InlineData("")]
+    [InlineData(" ")]
+    public async Task GetVersionsAsync_ThrowsArgumentException_WhenLanguageRangeIsInvalid(string languageRange)
+    {
+        var client = BuildClient(HttpStatusCode.OK, """{"data":[],"next_page_token":null}""");
+        var act = () => client.GetVersionsAsync(languageRange);
+        await act.Should().ThrowAsync<ArgumentException>();
+    }
+
+    [Fact]
+    public async Task GetVersionsAsync_ThrowsArgumentOutOfRangeException_WhenPageSizeIsNotPositive()
+    {
+        var client = BuildClient(HttpStatusCode.OK, """{"data":[],"next_page_token":null}""");
+        var act = () => client.GetVersionsAsync("en", pageSize: 0);
+        await act.Should().ThrowAsync<ArgumentOutOfRangeException>();
+    }
+
     [Fact]
     public async Task GetVersionsAsync_IncludesPageToken_WhenProvided()
     {
@@ -118,6 +136,14 @@ public sealed class BibleClientTests
             .Where(e => e.StatusCode == HttpStatusCode.NotFound);
     }
 
+    [Fact]
+    public async Task GetVersionAsync_ThrowsArgumentOutOfRangeException_WhenVersionIdIsNotPositive()
+    {
+        var client = BuildClient(HttpStatusCode.OK, "{}");
+        var act = () => client.GetVersionAsync(0);
+        await act.Should().ThrowAsync<ArgumentOutOfRangeException>();
+    }
+
     // -------------------------------------------------------------------------
     // GetBooksAsync
     // -------------------------------------------------------------------------
@@ -140,6 +166,22 @@ public sealed class BibleClientTests
         books.Should().HaveCount(3);
         books[0].Usfm.Should().Be("GEN");
         books[2].Usfm.Should().Be("LEV");
+    }
+
+    [Fact]
+    public async Task GetBooksAsync_ThrowsArgumentOutOfRangeException_WhenVersionIdIsNotPositive()
+    {
+        var client = BuildClient(HttpStatusCode.OK, "{}");
+        var act = () => client.GetBooksAsync(0);
+        await act.Should().ThrowAsync<ArgumentOutOfRangeException>();
+    }
+
+    [Fact]
+    public async Task GetBooksAsync_ThrowsArgumentNullException_WhenVersionIsNull()
+    {
+        var client = BuildClient(HttpStatusCode.OK, "{}");
+        var act = () => client.GetBooksAsync((Platform.API.Models.BibleVersion)null!);
+        await act.Should().ThrowAsync<ArgumentNullException>();
     }
 
     // -------------------------------------------------------------------------

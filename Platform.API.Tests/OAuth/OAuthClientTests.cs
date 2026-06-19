@@ -82,6 +82,16 @@ public sealed class OAuthClientTests
         authRequest.AuthorizationUrl.AbsoluteUri.Should().Contain("state=");
     }
 
+    [Theory]
+    [InlineData("")]
+    [InlineData(" ")]
+    public void BuildAuthorizationUrl_ThrowsArgumentException_WhenProvidedStateIsInvalid(string state)
+    {
+        var client = BuildClient(HttpStatusCode.OK, TokenJson);
+        var act = () => client.BuildAuthorizationUrl(state);
+        act.Should().Throw<ArgumentException>();
+    }
+
     // -------------------------------------------------------------------------
     // ExchangeCodeAsync
     // -------------------------------------------------------------------------
@@ -121,6 +131,26 @@ public sealed class OAuthClientTests
 
         await act.Should().ThrowAsync<YouVersionApiException>()
             .Where(e => e.StatusCode == HttpStatusCode.BadRequest);
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData(" ")]
+    public async Task ExchangeCodeAsync_ThrowsArgumentException_WhenCodeIsInvalid(string code)
+    {
+        var client = BuildClient(HttpStatusCode.OK, TokenJson);
+        var act = () => client.ExchangeCodeAsync(code, "verifier");
+        await act.Should().ThrowAsync<ArgumentException>();
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData(" ")]
+    public async Task ExchangeCodeAsync_ThrowsArgumentException_WhenCodeVerifierIsInvalid(string codeVerifier)
+    {
+        var client = BuildClient(HttpStatusCode.OK, TokenJson);
+        var act = () => client.ExchangeCodeAsync("auth-code", codeVerifier);
+        await act.Should().ThrowAsync<ArgumentException>();
     }
 
     // -------------------------------------------------------------------------

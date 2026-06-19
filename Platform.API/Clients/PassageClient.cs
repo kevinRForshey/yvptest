@@ -19,6 +19,12 @@ internal sealed partial class PassageClient(HttpClient httpClient, ILogger<Passa
         PassageRequestOptions? options = null,
         CancellationToken cancellationToken = default)
     {
+        if (versionId <= 0)
+            throw new ArgumentOutOfRangeException(nameof(versionId), versionId, "Version id must be greater than zero.");
+
+        if (string.IsNullOrWhiteSpace(usfm))
+            throw new ArgumentException("USFM passage id is required.", nameof(usfm));
+
         var resolvedOptions = options ?? PassageRequestOptions.Default;
         var url = BuildPassageUrl(versionId, usfm, resolvedOptions);
 
