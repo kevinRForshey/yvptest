@@ -36,4 +36,6 @@ public sealed record BibleVersionSummary
     /// <value>The BCP-47 language tag for this version.</value>
     [JsonPropertyName("language_tag")]
     public string LanguageTag { get; init; } = string.Empty;
+
+    public string? Copyright { get; set; }
 }

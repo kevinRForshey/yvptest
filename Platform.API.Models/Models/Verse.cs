@@ -16,4 +16,10 @@ public sealed record Verse
     /// <value>The human-readable verse reference.</value>
     [JsonPropertyName("human")]
     public string Human { get; init; } = string.Empty;
+    
+    /// <summary>
+    /// Holds the actual text of the verse. This is the content that will be displayed to users when they read the verse. It may contain formatting or special characters depending on the source of the verse text.
+    /// </summary>
+    [JsonPropertyName("text")]
+    public string Text { get; init; } = string.Empty;
 }

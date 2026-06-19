@@ -1,12 +1,15 @@
-﻿using Microsoft.AspNetCore.Components;
-
+﻿#region usings
+using Microsoft.AspNetCore.Components;
 using Platform.API.Models;
-
+#endregion
 namespace Platform.SDK.Components.BibleComponents
 {
     public partial class PassageDisplay
     {
-        [Parameter, EditorRequired] public string? Copyright { get; set; }
+        [Parameter, EditorRequired]public Passage Passage { get; set; } = default!;
+        
+        [Parameter]
+        public string? Copyright { get; set; }
 
         private Passage? _passage;
         private bool _loading;

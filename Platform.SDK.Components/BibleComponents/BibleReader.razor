@@ -1,4 +1,4 @@
-﻿<h3>BibleReader</h3>
+﻿@using Platform.SDK.Components.BibleComponents.Verses
 
 @* ── Picker toolbar ──────────────────────────────────────────────── *@
 <div class="row g-3 mb-4">
@@ -23,6 +23,24 @@
     </div>
 </div>
 
- @* ── Passage area ────────────────────────────────────────────────── *@
-    <PassageDisplay Copyright="@_copyright" @ref="_passageDisplay" />
-
+@* ── Verse area ────────────────────────────────────────────────── *@
+@if (_passage is not null)
+{
+    <VerseComponent Passage="@_passage" Copyright="@_copyright" />
+}
+else if (_loading)
+{
+    <div class="mt-3 text-center">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading passage…</span>
+        </div>
+    </div>
+}
+else if (_error is not null)
+{
+    <div class="alert alert-danger mt-3">@_error</div>
+}
+else if (CanRead)
+{
+    <p class="text-muted mt-3 small">Press <strong>Read</strong> to load the passage.</p>
+}

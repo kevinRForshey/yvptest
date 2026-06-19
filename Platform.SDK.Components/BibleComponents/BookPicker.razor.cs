@@ -1,7 +1,7 @@
-﻿using Microsoft.AspNetCore.Components;
-
+﻿# region usings
+using Microsoft.AspNetCore.Components;
 using Platform.API.Models;
-
+#endregion
 namespace Platform.SDK.Components.BibleComponents
 {
     public partial class BookPicker

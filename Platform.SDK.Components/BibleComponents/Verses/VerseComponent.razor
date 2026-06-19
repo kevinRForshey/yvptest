@@ -1,0 +1,30 @@
+<div class="verse-component">
+    <div class="verse-card">
+        <div class="verse-card-glow" aria-hidden="true"></div>
+
+        <div class="verse-card-header">
+            <div>
+                <span class="verse-eyebrow">Scripture</span>
+                <h2 class="verse-title">@Passage.Reference</h2>
+            </div>
+
+            <div class="verse-icon" aria-hidden="true">
+                ✦
+            </div>
+        </div>
+
+        <div class="verse-divider"></div>
+
+        <div class="verse-content">
+            @((MarkupString)Passage.Content)
+        </div>
+
+        @if (!string.IsNullOrWhiteSpace(Copyright))
+        {
+            <div class="verse-footer">
+                <span class="verse-footer-mark">©</span>
+                <span>@Copyright</span>
+            </div>
+        }
+    </div>
+</div>

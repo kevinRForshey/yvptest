@@ -1,7 +1,9 @@
-﻿using Microsoft.AspNetCore.Components;
-
+﻿#region  usings
+using Microsoft.AspNetCore.Components;
+using Platform.API.Models;
 using Platform.API.OAuth;
 using Platform.SDK.Services;
+#endregion
 
 namespace Platform.SDK.Components.BibleComponents
 {
@@ -15,6 +17,10 @@ namespace Platform.SDK.Components.BibleComponents
 
         [Inject]
         private NavigationManager Nav { get; set; } = default!;
+
+        [Inject]
+        private PassageService PassageService { get; set; } = default!;
+
         // Populated when the OAuth callback redirects with ?oauth_error=...
         [SupplyParameterFromQuery(Name = "oauth_error")]
         public string? OAuthError { get; set; }
@@ -22,7 +28,11 @@ namespace Platform.SDK.Components.BibleComponents
         [SupplyParameterFromQuery(Name = "auth_mode")]
         public string? AuthMode { get; set; }
 
-        private PassageDisplay? _passageDisplay;
+        private Passage? _passage;
+        private bool _loading;
+        private string? _error;
+        private CancellationTokenSource? _cts;
+
         private bool _isSignedIn;
         private string? _userName;
         private bool _debugTokenPresent;
@@ -33,15 +43,6 @@ namespace Platform.SDK.Components.BibleComponents
         {
             State.OnStateChanged += OnStateChangedHandler;
             await CheckSignInAsync();
-        }
-
-        // Re-check sign-in state on the first interactive render so the circuit always
-        // reflects the token stored during the OAuth callback, even if the prerender and
-        // circuit DI scopes briefly disagree.
-        protected override async Task OnAfterRenderAsync(bool firstRender)
-        {
-            if (firstRender)
-                await CheckSignInAsync();
         }
 
         private async Task CheckSignInAsync()
@@ -57,7 +58,8 @@ namespace Platform.SDK.Components.BibleComponents
                 _userName = userName;
                 _debugTokenPresent = tokenPresent;
                 _debugIdentity = userName;
-                StateHasChanged();
+
+                await InvokeAsync(StateHasChanged);
             }
         }
 
@@ -69,8 +71,53 @@ namespace Platform.SDK.Components.BibleComponents
 
         private async Task ReadPassageAsync()
         {
-            if (_passageDisplay is not null)
-                await _passageDisplay.LoadAsync();
+            if (!CanRead)
+                return;
+
+            _cts?.Cancel();
+            _cts = new CancellationTokenSource();
+
+            _loading = true;
+            _error = null;
+            _passage = null;
+
+            try
+            {
+                var usfm = BuildUsfm();
+
+                _passage = await PassageService.GetPassageAsync(
+                    State.SelectedVersion!.Id,
+                    usfm,
+                    new PassageRequestOptions { Format = PassageFormat.Html },
+                    _cts.Token);
+
+                _copyright = State.SelectedVersion.Copyright;
+            }
+            catch (OperationCanceledException)
+            {
+                // Superseded by a newer request — ignore
+            }
+            catch (Exception ex)
+            {
+                _error = $"Could not load passage: {ex.Message}";
+            }
+            finally
+            {
+                _loading = false;
+                await InvokeAsync(StateHasChanged);
+            }
+        }
+
+        private string BuildUsfm()
+        {
+            var book = State.SelectedBook!.Usfm;
+            var chapter = State.SelectedChapter!.Value;
+            var verseStart = State.SelectedVerseStart!.Value;
+            var verseEnd = State.SelectedVerseEnd;
+
+            return verseEnd.HasValue && verseEnd.Value != verseStart
+                ? $"{book}.{chapter}.{verseStart}-{verseEnd.Value}"
+                : $"{book}.{chapter}.{verseStart}";
         }
 
         private void SignIn() => Nav.NavigateTo("/auth/login", forceLoad: true);
@@ -78,9 +125,18 @@ namespace Platform.SDK.Components.BibleComponents
         private void ClearAuthDebugState() => Nav.NavigateTo("/auth/logout", forceLoad: true);
 
         private void OnStateChangedHandler()
-            => InvokeAsync(StateHasChanged);
+            => InvokeAsync(() =>
+            {
+                _passage = null;
+                _error = null;
+                StateHasChanged();
+            });
 
         public void Dispose()
-            => State.OnStateChanged -= OnStateChangedHandler;
+        {
+            State.OnStateChanged -= OnStateChangedHandler;
+            _cts?.Cancel();
+            _cts?.Dispose();
+        }
     }
 }
