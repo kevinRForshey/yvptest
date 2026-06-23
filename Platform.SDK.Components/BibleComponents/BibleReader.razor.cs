@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Components;
 using Platform.API.Models;
 using Platform.API.OAuth;
 using Platform.SDK.Services;
+using YouVersion.UsfmReferences;
+
 #endregion
 
 namespace Platform.SDK.Components.BibleComponents
@@ -83,11 +85,11 @@ namespace Platform.SDK.Components.BibleComponents
 
             try
             {
-                var usfm = BuildUsfm();
+                var reference = BuildReference();
 
                 _passage = await PassageService.GetPassageAsync(
                     State.SelectedVersion!.Id,
-                    usfm,
+                    reference,
                     new PassageRequestOptions { Format = PassageFormat.Html },
                     _cts.Token);
 
@@ -107,17 +109,22 @@ namespace Platform.SDK.Components.BibleComponents
                 await InvokeAsync(StateHasChanged);
             }
         }
+        
 
-        private string BuildUsfm()
+        private YouVersion.UsfmReferences.Reference BuildReference()
         {
             var book = State.SelectedBook!.Usfm;
             var chapter = State.SelectedChapter!.Value;
             var verseStart = State.SelectedVerseStart!.Value;
-            var verseEnd = State.SelectedVerseEnd;
+            var verseEnd = State.SelectedVerseEnd ?? verseStart;
 
-            return verseEnd.HasValue && verseEnd.Value != verseStart
-                ? $"{book}.{chapter}.{verseStart}-{verseEnd.Value}"
-                : $"{book}.{chapter}.{verseStart}";
+            return new YouVersion.UsfmReferences.Reference(
+                book: book,
+                chapter: chapter,
+                verses:
+                [
+                    new YouVersion.UsfmReferences.VerseRange(verseStart, verseEnd)
+                ]);
         }
 
         private void SignIn() => Nav.NavigateTo("/auth/login", forceLoad: true);

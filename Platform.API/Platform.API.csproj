@@ -39,6 +39,7 @@
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.9" />
     <PackageReference Include="Microsoft.Extensions.Options" Version="10.0.9" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.9" />
+    <PackageReference Include="YouVersion.UsfmReferences" Version="3.1.1" />
   </ItemGroup>
 
   <ItemGroup>

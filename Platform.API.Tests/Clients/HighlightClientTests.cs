@@ -1,12 +1,11 @@
 using System.Net;
-using System.Net.Http;
-using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.Extensions.Logging.Abstractions;
 using Platform.API.Clients;
 using Platform.API.Exceptions;
 using Platform.API.Models;
 using Platform.API.Tests.Fakes;
+using YouVersion.UsfmReferences;
 using Xunit;
 
 namespace Platform.API.Tests.Clients;
@@ -78,7 +77,7 @@ public sealed class HighlightClientTests
     {
         var client = BuildClient(HttpStatusCode.Created, HighlightJson);
 
-        var highlight = await client.CreateHighlightAsync(3034, "JHN.3.16", HighlightColor.Yellow);
+        var highlight = await client.CreateHighlightAsync(3034, TestReferences.John316, HighlightColor.Yellow);
 
         highlight.Id.Should().Be("hl-1");
         highlight.Usfm.Should().Be("JHN.3.16");
@@ -91,7 +90,7 @@ public sealed class HighlightClientTests
         var handler = new FakeHttpMessageHandler(HttpStatusCode.Created, HighlightJson);
         var client = BuildClientFromHandler(handler);
 
-        await client.CreateHighlightAsync(3034, "JHN.3.16", HighlightColor.Blue);
+        await client.CreateHighlightAsync(3034, TestReferences.John316, HighlightColor.Blue);
 
         handler.LastRequest!.Method.Should().Be(HttpMethod.Post);
     }
@@ -100,7 +99,7 @@ public sealed class HighlightClientTests
     public async Task CreateHighlightAsync_ThrowsYouVersionApiException_OnError()
     {
         var client = BuildClient(HttpStatusCode.Unauthorized, """{"error":"unauthorized"}""");
-        var act = () => client.CreateHighlightAsync(3034, "JHN.3.16", HighlightColor.Yellow);
+        var act = () => client.CreateHighlightAsync(3034, TestReferences.John316, HighlightColor.Yellow);
         await act.Should().ThrowAsync<YouVersionApiException>()
             .Where(e => e.StatusCode == HttpStatusCode.Unauthorized);
     }
@@ -147,7 +146,8 @@ public sealed class HighlightClientTests
 
     private static HighlightClient BuildClientFromHandler(FakeHttpMessageHandler handler)
     {
-        var httpClient = new HttpClient(handler) { BaseAddress = new System.Uri("https://api.youversion.com") };
-        return new HighlightClient(httpClient, NullLogger<HighlightClient>.Instance);
+        var httpClient = new HttpClient(handler) { BaseAddress = new Uri("https://api.youversion.com") };
+        var usfmService = new UsfmReferenceService();
+        return new HighlightClient(httpClient, NullLogger<HighlightClient>.Instance, usfmService);
     }
 }

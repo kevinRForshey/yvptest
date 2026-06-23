@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace Platform.API.Models;
+namespace Platform.API.Models.Models;
 
 /// <summary>
 /// Represents a single verse within a Bible chapter.
@@ -8,7 +8,11 @@ namespace Platform.API.Models;
 public sealed record Verse
 {
     /// <summary>Gets the USFM verse identifier (e.g. <c>JHN.3.16</c>).</summary>
-    /// <value>The USFM verse identifier.</value>
+    /// <remarks>
+    /// This is a normalized, validated USFM verse reference from the YouVersion Platform API.
+    /// All USFM references passed to passage and highlight operations are validated against
+    /// YouVersion.UsfmReferences.BookCatalog before being sent to the API.
+    /// </remarks>
     [JsonPropertyName("usfm")]
     public string Usfm { get; init; } = string.Empty;
 

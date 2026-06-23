@@ -14,7 +14,11 @@ public sealed record Highlight
     public string Id { get; init; } = string.Empty;
 
     /// <summary>Gets the USFM identifier of the highlighted verse (e.g. <c>JHN.3.16</c>).</summary>
-    /// <value>The USFM identifier for the highlighted verse.</value>
+    /// <remarks>
+    /// This is a normalized, validated USFM verse reference from the YouVersion Platform API.
+    /// All USFM references passed to highlight operations are validated against
+    /// YouVersion.UsfmReferences.BookCatalog before being sent to the API.
+    /// </remarks>
     [JsonPropertyName("usfm")]
     public string Usfm { get; init; } = string.Empty;
 

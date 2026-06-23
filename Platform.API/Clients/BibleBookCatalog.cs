@@ -1,4 +1,7 @@
+#region  usings
 using Platform.API.Models;
+using YouVersion.UsfmReferences;
+#endregion
 
 namespace Platform.API.Clients;
 
@@ -16,8 +19,16 @@ internal static class BibleBookCatalog
     /// </summary>
     internal static Book FromUsfm(string usfm)
     {
-        s_books.TryGetValue(usfm, out var meta);
-        return new Book { Usfm = usfm, Human = meta.Human ?? usfm, ChapterCount = meta.Chapters };
+        // Validate code against package-provided canonical list
+        var isKnown = BookCatalog.IsKnownBook(usfm);
+        var human = isKnown && s_books.TryGetValue(usfm, out var meta) 
+            ? meta.Human 
+            : usfm;
+        var chapters = isKnown && s_books.TryGetValue(usfm, out var meta2) 
+            ? meta2.Chapters 
+            : 0;
+        
+        return new Book { Usfm = usfm, Human = human, ChapterCount = chapters };
     }
 
     // Standard chapter counts keyed by USFM book code (66 canonical books).

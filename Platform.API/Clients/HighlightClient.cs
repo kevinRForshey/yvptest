@@ -5,6 +5,7 @@ using Platform.API.Http;
 using Platform.API.Models;
 
 using System.Net.Http.Json;
+using YouVersion.UsfmReferences;
 
 namespace Platform.API.Clients;
 
@@ -12,13 +13,19 @@ namespace Platform.API.Clients;
 /// HTTP implementation of <see cref="IHighlightClient"/>.
 /// Read operations require only an app key; write operations require an OAuth access token
 /// delivered by <see cref="Platform.API.Http.OAuthBearerTokenHandler"/>.
+/// All highlight operations use typed USFM references for validation.
 /// </summary>
 /// <remarks>
 /// Call <see cref="Platform.API.Extensions.ServiceCollectionExtensions.AddYouVersionOAuth"/> after
 /// <c>AddYouVersionApiClients</c> to enable automatic bearer-token injection for write operations.
 /// </remarks>
-internal sealed partial class HighlightClient(HttpClient httpClient, ILogger<HighlightClient> logger) : IHighlightClient
+internal sealed partial class HighlightClient(
+    HttpClient httpClient,
+    ILogger<HighlightClient> logger,
+    IUsfmReferenceService usfmReferenceService) : IHighlightClient
 {
+    private readonly IUsfmReferenceService _usfmReferenceService = usfmReferenceService;
+    
     private const string HighlightsPath = "/v1/highlights";
 
     /// <inheritdoc />
@@ -43,16 +50,20 @@ internal sealed partial class HighlightClient(HttpClient httpClient, ILogger<Hig
     /// <inheritdoc />
     public async Task<Highlight> CreateHighlightAsync(
         int versionId,
-        string usfm,
+        Reference usfm,
         HighlightColor color,
         CancellationToken cancellationToken = default)
     {
-        logger.LogDebug("Creating highlight for {Usfm} in version {VersionId} with color {Color}.", usfm, versionId, color);
+        ArgumentNullException.ThrowIfNull(usfm, nameof(usfm));
+        
+        var normalizedUsfm = ToNormalizedUsfm(usfm);
+        logger.LogDebug("Creating highlight for {Usfm} in version {VersionId} with color {Color}.", 
+            normalizedUsfm, versionId, color);
 
         var payload = new CreateHighlightRequest
         {
             VersionId = versionId,
-            Usfm = usfm,
+            Usfm = normalizedUsfm,
             Color = color.ToString().ToLowerInvariant()
         };
         using var content = JsonContent.Create(payload);
@@ -65,9 +76,9 @@ internal sealed partial class HighlightClient(HttpClient httpClient, ILogger<Hig
 
         var result = highlight ?? throw new YouVersionApiException(
             System.Net.HttpStatusCode.OK,
-            $"Create highlight for '{usfm}' returned an empty response body.");
+            $"Create highlight for '{normalizedUsfm}' returned an empty response body.");
 
-        logger.LogDebug("Created highlight {HighlightId} for {Usfm}.", result.Id, usfm);
+        logger.LogDebug("Created highlight {HighlightId} for {Usfm}.", result.Id, normalizedUsfm);
         return result;
     }
 
@@ -81,5 +92,27 @@ internal sealed partial class HighlightClient(HttpClient httpClient, ILogger<Hig
         await ApiRequestHelper.EnsureSuccessAsync(response, url, logger, cancellationToken).ConfigureAwait(false);
 
         logger.LogDebug("Deleted highlight {HighlightId}.", highlightId);
+    }
+    
+    /// <summary>
+    /// Normalizes a typed USFM reference to its string representation for API transmission.
+    /// </summary>
+    /// <param name="reference">The USFM reference to normalize.</param>
+    /// <returns>The normalized USFM string (e.g., "JHN.3.16").</returns>
+    /// <exception cref="YouVersionApiException">Thrown if the reference cannot be converted to USFM.</exception>
+    private static string ToNormalizedUsfm(Reference reference)
+    {
+        ArgumentNullException.ThrowIfNull(reference);
+        try
+        {
+            return reference.ToString();
+        }
+        catch (Exception ex)
+        {
+            throw new YouVersionApiException(
+                System.Net.HttpStatusCode.BadRequest,
+                $"Failed to normalize USFM reference to string: {ex.Message}",
+                ex.ToString());
+        }
     }
 }

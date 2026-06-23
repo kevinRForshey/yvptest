@@ -6,6 +6,7 @@ using Platform.API.Clients;
 using Platform.API.Configuration;
 using Platform.API.Http;
 using Platform.API.OAuth;
+using YouVersion.UsfmReferences;
 
 namespace Platform.API.Extensions;
 
@@ -46,11 +47,10 @@ public static class ServiceCollectionExtensions
             .ValidateOnStart();
 
         services.AddTransient<AppKeyDelegatingHandler>();
-
+        services.AddSingleton<IUsfmReferenceService, UsfmReferenceService>();
         RegisterTypedClient<IBibleClient, BibleClient>(services);
         RegisterTypedClient<IPassageClient, PassageClient>(services);
         RegisterTypedClient<IHighlightClient, HighlightClient>(services);
-
         return services;
     }
 
@@ -82,6 +82,10 @@ public static class ServiceCollectionExtensions
             .ValidateOnStart();
 
         services.AddTransient<AppKeyDelegatingHandler>();
+
+        // Register USFM reference service as singleton (stateless, thread-safe)
+        services.TryAddSingleton<YouVersion.UsfmReferences.IUsfmReferenceService,
+            YouVersion.UsfmReferences.UsfmReferenceService>();
 
         RegisterTypedClient<IBibleClient, BibleClient>(services);
         RegisterTypedClient<IPassageClient, PassageClient>(services);

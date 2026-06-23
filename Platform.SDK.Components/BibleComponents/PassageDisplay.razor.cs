@@ -1,6 +1,8 @@
 ﻿#region usings
 using Microsoft.AspNetCore.Components;
 using Platform.API.Models;
+using YouVersion.UsfmReferences;
+
 #endregion
 namespace Platform.SDK.Components.BibleComponents
 {
@@ -44,10 +46,10 @@ namespace Platform.SDK.Components.BibleComponents
 
             try
             {
-                var usfm = BuildUsfm();
+                var reference = BuildReference();
                 _passage = await PassageService.GetPassageAsync(
                     State.SelectedVersion.Id,
-                    usfm,
+                    reference,
                     new PassageRequestOptions { Format = PassageFormat.Html },
                     _cts.Token);
                 _copyright = Copyright;
@@ -67,16 +69,20 @@ namespace Platform.SDK.Components.BibleComponents
             }
         }
 
-        private string BuildUsfm()
+        private YouVersion.UsfmReferences.Reference BuildReference()
         {
             var book = State.SelectedBook!.Usfm;
-            var ch = State.SelectedChapter!.Value;
-            var vs = State.SelectedVerseStart!.Value;
-            var ve = State.SelectedVerseEnd;
+            var chapter = State.SelectedChapter!.Value;
+            var verseStart = State.SelectedVerseStart!.Value;
+            var verseEnd = State.SelectedVerseEnd ?? verseStart;
 
-            return ve.HasValue && ve.Value != vs
-                ? $"{book}.{ch}.{vs}-{ve.Value}"
-                : $"{book}.{ch}.{vs}";
+            return new YouVersion.UsfmReferences.Reference(
+                book: book,
+                chapter: chapter,
+                verses:
+                [
+                    new YouVersion.UsfmReferences.VerseRange(verseStart, verseEnd)
+                ]);
         }
 
         public void Dispose()

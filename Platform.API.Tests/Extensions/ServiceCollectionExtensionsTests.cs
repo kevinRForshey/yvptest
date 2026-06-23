@@ -1,9 +1,9 @@
-using System;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using Platform.API.Clients;
 using Platform.API.Extensions;
 using Platform.API.OAuth;
+using YouVersion.UsfmReferences;
 using Xunit;
 
 namespace Platform.API.Tests.Extensions;
@@ -33,6 +33,19 @@ public sealed class ServiceCollectionExtensionsTests
     {
         var sp = BuildProvider(withOAuth: false);
         sp.GetRequiredService<IHighlightClient>().Should().NotBeNull();
+    }
+
+    [Fact]
+    public void AddYouVersionApiClients_RegistersIUsfmReferenceService_AsSingleton()
+    {
+        var sp = BuildProvider(withOAuth: false);
+
+        var service1 = sp.GetRequiredService<IUsfmReferenceService>();
+        var service2 = sp.GetRequiredService<IUsfmReferenceService>();
+
+        service1.Should().NotBeNull();
+        service1.Should().BeOfType<UsfmReferenceService>();
+        service1.Should().BeSameAs(service2);
     }
 
     [Fact]
@@ -144,16 +157,16 @@ public sealed class ServiceCollectionExtensionsTests
 
     private sealed class CustomTokenProvider : ITokenProvider
     {
-        public System.Threading.Tasks.Task<OAuthTokenResponse?> GetTokenAsync(
-            System.Threading.CancellationToken ct = default)
-            => System.Threading.Tasks.Task.FromResult<OAuthTokenResponse?>(null);
+        public Task<OAuthTokenResponse?> GetTokenAsync(
+            CancellationToken ct = default)
+            => Task.FromResult<OAuthTokenResponse?>(null);
 
-        public System.Threading.Tasks.Task StoreTokenAsync(OAuthTokenResponse token,
-            System.Threading.CancellationToken ct = default)
-            => System.Threading.Tasks.Task.CompletedTask;
+        public Task StoreTokenAsync(OAuthTokenResponse token,
+            CancellationToken ct = default)
+            => Task.CompletedTask;
 
-        public System.Threading.Tasks.Task ClearTokenAsync(
-            System.Threading.CancellationToken ct = default)
-            => System.Threading.Tasks.Task.CompletedTask;
+        public Task ClearTokenAsync(
+            CancellationToken ct = default)
+            => Task.CompletedTask;
     }
 }

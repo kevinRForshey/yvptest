@@ -40,7 +40,12 @@
         <div class="col-12 col-md-3">
             <section class="picker-card">
                 <span class="picker-label">Verse</span>
-                <VersePicker />
+                <VersePicker
+                    Book="@State.SelectedBook!.Usfm"
+                    Chapter="@State.SelectedChapter!.Value"
+                    Verse="@(State.SelectedVerseStart ?? 0)"
+                    VerseEnd="@(State.SelectedVerseEnd ?? 0)"
+                    VersionId="@State.SelectedVersion!.Id" />
             </section>
         </div>
 

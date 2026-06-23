@@ -11,4 +11,8 @@
     <ProjectReference Include="..\Platform.API\Platform.API.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="YouVersion.UsfmReferences" Version="3.1.1" />
+  </ItemGroup>
+
 </Project>
