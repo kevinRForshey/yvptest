@@ -35,19 +35,6 @@
             }
         </div>
     </div>
-
-  @*   @if (HostEnvironment.IsDevelopment())
-    {
-        <div class="alert alert-secondary py-2 px-3 mb-3 small">
-            <strong>Auth debug</strong>
-            <span class="ms-2">Token: <code>@(_debugTokenPresent ? "present" : "absent")</code></span>
-            <span class="ms-2">Identity: <code>@(_debugIdentity ?? "(none)")</code></span>
-            <span class="ms-2">Callback mode: <code>@(AuthMode ?? "(none)")</code></span>
-            <button class="btn btn-sm btn-outline-secondary ms-3" @onclick="ClearAuthDebugState">
-                Clear auth
-            </button>
-        </div>
-    } *@
     <BibleReader/>
 </div>
 

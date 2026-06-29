@@ -40,7 +40,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="YouVersion.UsfmReferences" Version="3.1.1" />
+    <ProjectReference Include="..\YouVersion.UsfmReferences\YouVersion.UsfmReferences.csproj" />
   </ItemGroup>
 
 </Project>

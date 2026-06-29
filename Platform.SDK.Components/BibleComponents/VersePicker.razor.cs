@@ -17,7 +17,15 @@ namespace Platform.SDK.Components.BibleComponents
         private int? _lastChapter;
 
         protected override void OnInitialized()
-            => State.OnStateChanged += OnStateChangedHandler;
+        {
+            // Seed _lastChapter from the current state before subscribing.
+            // VersePicker only mounts after a chapter is already selected, so
+            // _lastChapter would otherwise stay null and the first notification
+            // (even one the user triggers via verse input) would falsely look like
+            // a chapter change and reset _verseStart back to 1.
+            _lastChapter = State.SelectedChapter;
+            State.OnStateChanged += OnStateChangedHandler;
+        }
 
         private void OnStateChangedHandler()
             => InvokeAsync(() =>

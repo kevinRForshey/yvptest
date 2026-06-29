@@ -1,4 +1,6 @@
 using System;
+using Microsoft.Extensions.Caching.Hybrid;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
@@ -147,7 +149,7 @@ public static class ServiceCollectionExtensions
         // Append OAuthBearerTokenHandler to IHighlightClient's existing pipeline
         // (AppKeyDelegatingHandler was already added by AddYouVersionApiClients).
         // AddYouVersionApiClients MUST be called first.
-        services.AddHttpClient(typeof(IHighlightClient).Name)
+        services.AddHttpClient(typeof(HighlightClient).Name)
             .AddHttpMessageHandler<OAuthBearerTokenHandler>();
 
         return services;
@@ -161,8 +163,11 @@ public static class ServiceCollectionExtensions
         where TClient : class
         where TImplementation : class, TClient
     {
+        // Register the concrete implementation as its own typed HTTP client so it can be
+        // resolved directly by name (e.g. by caching decorators without creating a circular
+        // dependency through the interface).
         services
-            .AddHttpClient<TClient, TImplementation>((serviceProvider, httpClient) =>
+            .AddHttpClient<TImplementation>((serviceProvider, httpClient) =>
             {
                 var options = serviceProvider
                     .GetRequiredService<IOptions<YouVersionApiOptions>>()
@@ -174,6 +179,59 @@ public static class ServiceCollectionExtensions
             .AddHttpMessageHandler<AppKeyDelegatingHandler>()
             .AddHttpMessageHandler<OutboundRateLimitingHandler>()
             .AddStandardResilienceHandler();
+
+        // Forward the public interface to the concrete implementation.
+        // AddYouVersionCaching() replaces this registration with a caching decorator.
+        services.AddTransient<TClient>(sp => sp.GetRequiredService<TImplementation>());
+    }
+
+    /// <summary>
+    /// Wraps <see cref="IBibleClient"/> and <see cref="IPassageClient"/> with caching decorators
+    /// backed by <see cref="HybridCache"/> (L1 in-process memory + optional L2 distributed cache).
+    /// Must be called after <see cref="AddYouVersionApiClients(IServiceCollection, Action{YouVersionApiOptions})"/>.
+    /// </summary>
+    /// <param name="services">The DI service collection.</param>
+    /// <param name="configureOptions">
+    /// Optional delegate to customize per-data-type TTLs. When omitted, defaults are
+    /// 24 h for version/book data and 7 days for passage content.
+    /// </param>
+    /// <remarks>
+    /// To add a distributed (L2) cache, register an <c>IDistributedCache</c> implementation
+    /// (e.g. <c>AddStackExchangeRedisCache</c>) before or after calling this method.
+    /// <see cref="HybridCache"/> will detect it automatically and use it as the L2 tier.
+    /// </remarks>
+    /// <returns>The original <paramref name="services"/> for chaining.</returns>
+    public static IServiceCollection AddYouVersionCaching(
+        this IServiceCollection services,
+        Action<YouVersionCacheOptions>? configureOptions = null)
+    {
+        if (!HasApiClientRegistration(services))
+            throw new InvalidOperationException(
+                "AddYouVersionApiClients must be called before AddYouVersionCaching.");
+
+        var opts = new YouVersionCacheOptions();
+        configureOptions?.Invoke(opts);
+        services.AddSingleton(opts);
+
+        services.AddMemoryCache();
+        services.AddHybridCache();
+
+        // Replace the plain interface → implementation forward with caching decorators.
+        // The underlying BibleClient/PassageClient typed HTTP clients remain registered and
+        // are resolved directly by the decorators to avoid circular dependency.
+        services.Replace(ServiceDescriptor.Transient<IBibleClient>(sp =>
+            new CachingBibleClient(
+                sp.GetRequiredService<BibleClient>(),
+                sp.GetRequiredService<HybridCache>(),
+                sp.GetRequiredService<YouVersionCacheOptions>())));
+
+        services.Replace(ServiceDescriptor.Transient<IPassageClient>(sp =>
+            new CachingPassageClient(
+                sp.GetRequiredService<PassageClient>(),
+                sp.GetRequiredService<HybridCache>(),
+                sp.GetRequiredService<YouVersionCacheOptions>())));
+
+        return services;
     }
 
     private static bool HasApiClientRegistration(IServiceCollection services)

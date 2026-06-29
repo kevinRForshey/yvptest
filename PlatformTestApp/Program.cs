@@ -20,6 +20,7 @@ builder.Services.AddHttpClient();
 builder.Services.AddFluentUIComponents();
 
 builder.Services.AddYouVersionApiClients(builder.Configuration);
+builder.Services.AddYouVersionCaching();
 builder.Services.AddYouVersionOAuth(o =>
 {
     builder.Configuration.GetSection("YouVersionOAuth").Bind(o);

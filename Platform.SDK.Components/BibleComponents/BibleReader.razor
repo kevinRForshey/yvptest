@@ -40,12 +40,21 @@
         <div class="col-12 col-md-3">
             <section class="picker-card">
                 <span class="picker-label">Verse</span>
-                <VersePicker
-                    Book="@State.SelectedBook!.Usfm"
-                    Chapter="@State.SelectedChapter!.Value"
-                    Verse="@(State.SelectedVerseStart ?? 0)"
-                    VerseEnd="@(State.SelectedVerseEnd ?? 0)"
-                    VersionId="@State.SelectedVersion!.Id" />
+                @if (State.SelectedVersion is not null &&
+                     State.SelectedBook is not null &&
+                     State.SelectedChapter is not null)
+                {
+                    <VersePicker
+                        Book="@State.SelectedBook.Usfm"
+                        Chapter="@State.SelectedChapter.Value"
+                        Verse="@(State.SelectedVerseStart ?? 0)"
+                        VerseEnd="@(State.SelectedVerseEnd ?? 0)"
+                        VersionId="@State.SelectedVersion.Id" />
+                }
+                else
+                {
+                    <p class="text-muted small mb-0">Select version, book, and chapter first.</p>
+                }
             </section>
         </div>
 
@@ -60,9 +69,10 @@
 </div>
 
 @* ── Verse area ────────────────────────────────────────────────── *@
-@if (_passage is not null)
+
+@if(_passage is not null)
 {
-    <VerseComponent Passage="@_passage" Copyright="@_copyright" />
+    <VerseComponent Passage="@(_passage!)" Copyright="@_copyright" />
 }
 else if (_loading)
 {

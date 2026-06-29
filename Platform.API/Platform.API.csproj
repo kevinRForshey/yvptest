@@ -36,12 +36,13 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Caching.Hybrid" Version="10.7.0" />
     <PackageReference Include="Microsoft.Extensions.Http" Version="10.0.9" />
     <PackageReference Include="Microsoft.Extensions.Http.Resilience" Version="10.1.0" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.9" />
     <PackageReference Include="Microsoft.Extensions.Options" Version="10.0.9" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.9" />
-    <PackageReference Include="YouVersion.UsfmReferences" Version="3.1.1" />
+    <ProjectReference Include="..\YouVersion.UsfmReferences\YouVersion.UsfmReferences.csproj" />
   </ItemGroup>
 
   <ItemGroup>
