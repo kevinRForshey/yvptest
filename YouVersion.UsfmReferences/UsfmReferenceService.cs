@@ -22,7 +22,7 @@ public sealed class UsfmReferenceService : IUsfmReferenceService
 
         string stripped = name.Trim();
 
-        // A USFM code passed in directly is returned unchanged.
+        // A USFM code
         if (BookCatalog.IsKnownBook(stripped))
         {
             return stripped;
